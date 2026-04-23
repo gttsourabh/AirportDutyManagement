@@ -4,10 +4,13 @@ const Airport = require('./models/Airport');
 const Terminal = require('./models/Terminal');
 
 const seed = async () => {
+
   await mongoose.connect(process.env.MONGODB_URI);
+
   console.log('Connected to MongoDB');
 
   const count = await Airport.countDocuments();
+
   if (count > 0) {
     console.log('Airport data already exists, skipping seed');
     process.exit(0);
@@ -56,7 +59,9 @@ const seed = async () => {
   }
 
   console.log('\nAirport seed complete!');
+  
   process.exit(0);
+
 };
 
 seed().catch(err => { console.error(err); process.exit(1); });

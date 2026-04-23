@@ -2,6 +2,7 @@ const Airport = require('../models/Airport');
 const Terminal = require('../models/Terminal');
 
 // ── Airports ──────────────────────────────────────────────
+
 exports.getAirports = async (req, res, next) => {
   try {
     const airports = await Airport.find().sort({ name: 1 });
@@ -39,8 +40,9 @@ exports.toggleAirport = async (req, res, next) => {
     res.json(airport.toJSON());
   } catch (err) { next(err); }
 };
-
+ 
 // ── Terminals ─────────────────────────────────────────────
+
 exports.getTerminals = async (req, res, next) => {
   try {
     const { airportId } = req.params;
@@ -89,3 +91,6 @@ exports.toggleTerminal = async (req, res, next) => {
     res.json(terminal.toJSON());
   } catch (err) { next(err); }
 };
+ 
+
+

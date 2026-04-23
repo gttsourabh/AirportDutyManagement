@@ -22,10 +22,18 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 }));
 
 app.use('/api/v1/auth', require('./routes/auth'));
+
 app.use('/api/v1/duties', require('./routes/duties'));
+
 app.use('/api/v1/officers', require('./routes/officers'));
+
 app.use('/api/v1/airports', require('./routes/airports'));
+
 app.use('/api/v1/reports', require('./routes/reports'));
+
+app.get('/', (req, res) => {
+  res.send('Airport Duty API Running');
+});
 
 app.use((req, res) => res.status(404).json({ message: 'Route not found' }));
 app.use(errorHandler);
