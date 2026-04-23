@@ -18,6 +18,8 @@ const findUser = identifier =>
 
 // Step 1: validate credentials → generate & store OTP
 exports.sendOTP = async (req, res, next) => {
+  console.log(req.body)
+
   try {
     const { identifier, password, role } = req.body;
     if (!identifier || !password)
@@ -52,9 +54,11 @@ exports.sendOTP = async (req, res, next) => {
     }
 
     res.json(response);
+
   } catch (err) {
     next(err);
   }
+
 };
 
 // Step 2: verify OTP → return JWT
