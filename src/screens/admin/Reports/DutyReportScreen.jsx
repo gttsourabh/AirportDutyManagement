@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, FlatList, TouchableOpacity, Alert} from 'react-native';
-import Share from 'react-native-share';
+import {View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Share} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useDispatch, useSelector} from 'react-redux';
 import {fetchReportStart, fetchDutyReportSuccess, fetchReportFailure} from '../../../store/slices/reportSlice';
@@ -64,16 +63,14 @@ const DutyReportScreen = () => {
         isIncentiveEligible(d.officeType) ? '500' : '0',
       ]);
       const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
-      const base64 = btoa(unescape(encodeURIComponent(csv)));
-      await Share.open({
-        title: 'Duty Report',
-        url: `data:text/csv;base64,${base64}`,
-        filename: `duty_report_${new Date().toISOString().slice(0, 10)}.csv`,
-        type: 'text/csv',
-        failOnCancel: false,
+      await Share.share({
+        message: csv,
+        title: `Duty Report ${new Date().toISOString().slice(0, 10)}`,
       });
     } catch (e) {
-      Alert.alert('Export Failed', e?.message || 'Something went wrong');
+      if (e?.message !== 'User did not share') {
+        Alert.alert('Export Failed', e?.message || 'Something went wrong');
+      }
     }
   };
 

@@ -36,21 +36,21 @@ const SubordinateReportScreen = () => {
       </View>
       <FlatList
         data={subordinateReport}
-        keyExtractor={item => item.officerId?.toString()}
+        keyExtractor={item => item.officer?.id?.toString()}
         renderItem={({item}) => (
           <View style={styles.card}>
             <View style={styles.avatarRow}>
-              <View style={styles.avatar}><Text style={styles.avatarText}>{item.name?.charAt(0)}</Text></View>
+              <View style={styles.avatar}><Text style={styles.avatarText}>{item.officer?.name?.charAt(0)}</Text></View>
               <View>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.empId}>{item.employeeId}</Text>
+                <Text style={styles.name}>{item.officer?.name}</Text>
+                <Text style={styles.empId}>{item.officer?.employeeId}</Text>
               </View>
             </View>
             <View style={styles.statsRow}>
               <StatBox label="Upcoming" value={item.upcoming || 0} color={colors.warning} />
               <StatBox label="Completed" value={item.completed || 0} color={colors.success} />
               <StatBox label="Cancelled" value={item.cancelled || 0} color={colors.error} />
-              <StatBox label="Incentive" value={`₹${(item.incentiveDuties || 0) * INCENTIVE_AMOUNT}`} color={colors.secondary} />
+              <StatBox label="Incentive" value={`₹${item.totalIncentive || 0}`} color={colors.secondary} />
             </View>
           </View>
         )}

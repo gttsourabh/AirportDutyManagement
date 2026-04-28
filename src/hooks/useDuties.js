@@ -1,6 +1,6 @@
 import {useDispatch, useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
-import {fetchDutiesStart, fetchDutiesSuccess, fetchDutiesFailure, updateDutyInList, addDutyToList, setSelectedDuty} from '../store/slices/dutySlice';
+import {fetchDutiesStart, fetchDutiesSuccess, fetchDutiesFailure, updateDutyInList, addDutyToList, setSelectedDuty, setFilters as setFiltersAction} from '../store/slices/dutySlice';
 import {getDuties, getDutyById, createDuty, updateDutyStatus} from '../api/dutyApi';
 
 export const useDuties = () => {
@@ -51,5 +51,7 @@ export const useDuties = () => {
     }
   };
 
-  return {...dutyState, fetchDuties, fetchDuty, addDuty, changeStatus};
+  const setFilters = filters => dispatch(setFiltersAction(filters));
+
+  return {...dutyState, fetchDuties, fetchDuty, addDuty, changeStatus, setFilters};
 };

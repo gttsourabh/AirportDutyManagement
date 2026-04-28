@@ -15,6 +15,18 @@ exports.addOfficer = async (req, res, next) => {
     const username = employeeId.toLowerCase();
     const password = phone.slice(-4);
 
+    const existing = await User.findOne({
+      $or: [
+        { employeeId: { $regex: new RegExp(`^${employeeId}$`, 'i') } },
+        { email: email.toLowerCase() },
+      ],
+    });
+
+    if (existing) {
+      const field = existing.employeeId.toLowerCase() === username ? 'Employee ID' : 'Email';
+      return res.status(400).json({ message: `${field} already exists` });
+    }
+
     const officer = await User.create({ name, email, phone, employeeId, username, password, role: 'OFFICER' });
     res.status(201).json(officer.toJSON());
   } catch (err) {

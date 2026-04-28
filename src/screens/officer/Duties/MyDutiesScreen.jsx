@@ -6,6 +6,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useDuties} from '../../../hooks/useDuties';
 import DutyCard from '../../../components/common/DutyCard';
 import EmptyState from '../../../components/common/EmptyState';
+import AppButton from '../../../components/common/AppButton';
 import {colors} from '../../../theme/colors';
 import {DUTY_STATUS} from '../../../constants/dutyStatus';
 
@@ -14,8 +15,17 @@ const TABS = ['ALL', ...Object.values(DUTY_STATUS)];
 const MyDutiesScreen = () => {
   const navigation = useNavigation();
   const {user} = useSelector(state => state.auth);
-  const {list: duties, fetchDuties, isLoading} = useDuties();
+  const {list: duties, fetchDuties, changeStatus, isLoading} = useDuties();
   const [activeTab, setActiveTab] = useState('ALL');
+  const [updatingId, setUpdatingId] = useState(null);
+
+  const handleStatusUpdate = async (dutyId, status) => {
+    setUpdatingId(dutyId);
+    await changeStatus(dutyId, status);
+    setUpdatingId(null);
+    setActiveTab('ALL');
+    fetchDuties({officerId: user?.id});
+  };
 
   useEffect(() => {
     fetchDuties({officerId: user?.id});
@@ -44,12 +54,31 @@ const MyDutiesScreen = () => {
         data={filtered}
         keyExtractor={item => item.id?.toString()}
         renderItem={({item}) => (
-          <DutyCard duty={item} onPress={() => navigation.navigate('DutyDetail', {dutyId: item.id})} />
+          <View>
+            <DutyCard duty={item} onPress={() => navigation.navigate('DutyDetail', {dutyId: item.id})} />
+            {item.status === DUTY_STATUS.UPCOMING && (
+              <View style={styles.actionRow}>
+                <AppButton
+                  title="Completed"
+                  style={styles.actionBtn}
+                  loading={updatingId === item.id}
+                  onPress={() => handleStatusUpdate(item.id, DUTY_STATUS.COMPLETED)}
+                />
+                <AppButton
+                  title="Cancelled"
+                  variant="danger"
+                  style={styles.actionBtn}
+                  loading={updatingId === item.id}
+                  onPress={() => handleStatusUpdate(item.id, DUTY_STATUS.CANCELLED)}
+                />
+              </View>
+            )}
+          </View>
         )}
         contentContainerStyle={styles.list}
         refreshing={isLoading}
         onRefresh={() => fetchDuties({officerId: user?.id})}
-        ListEmptyComponent={<EmptyState icon="📋" title={`No ${activeTab.toLowerCase()} duties`} />}
+        ListEmptyComponent={<EmptyState icon="📋" title={activeTab === 'ALL' ? 'No duties assigned' : `No ${activeTab.charAt(0) + activeTab.slice(1).toLowerCase()} duties`} />}
       />
     </SafeAreaView>
   );
@@ -65,6 +94,8 @@ const styles = StyleSheet.create({
   tabText: {fontSize: 13, color: colors.textSecondary},
   tabTextActive: {color: colors.white, fontWeight: '600'},
   list: {padding: 12},
+  actionRow: {flexDirection: 'row', gap: 10, marginTop: -4, marginBottom: 10, paddingHorizontal: 2},
+  actionBtn: {flex: 1, minHeight: 38, paddingVertical: 8},
 });
 
 export default MyDutiesScreen;

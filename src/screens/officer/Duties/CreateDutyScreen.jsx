@@ -3,7 +3,7 @@ import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform} from 're
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useForm, Controller} from 'react-hook-form';
 import {yupResolver} from '@hookform/resolvers/yup';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -20,6 +20,8 @@ import moment from 'moment';
 
 const OfficerCreateDutyScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const prefill = route.params?.prefill || null;
   const dispatch = useDispatch();
   const {addDuty} = useDuties();
   const {user} = useSelector(state => state.auth);
@@ -28,9 +30,15 @@ const OfficerCreateDutyScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showReportingTimePicker, setShowReportingTimePicker] = useState(false);
   const [showFlightTimePicker, setShowFlightTimePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const initDate = prefill?.date ? new Date(prefill.date) : new Date();
+  const initFlightTime = prefill?.flightTime
+    ? moment(prefill.flightTime, 'HH:mm').toDate()
+    : new Date();
+
+  const [selectedDate, setSelectedDate] = useState(initDate);
   const [reportingTime, setReportingTime] = useState(new Date());
-  const [flightTime, setFlightTime] = useState(new Date());
+  const [flightTime, setFlightTime] = useState(initFlightTime);
 
   const [officeTypeOpen, setOfficeTypeOpen] = useState(false);
   const [fromOpen, setFromOpen] = useState(false);
@@ -44,11 +52,14 @@ const OfficerCreateDutyScreen = () => {
     defaultValues: {
       officerId: user?.id?.toString() || '',
       officerName: user?.name || '',
-      date: toAPIDate(new Date()),
+      date: prefill?.date || toAPIDate(new Date()),
       reportingTime: toAPITime(new Date()),
-      officeType: '', from: '', to: '', flightNo: '',
-      flightTime: toAPITime(new Date()),
-      arrivalDeparture: '',
+      officeType: '',
+      from: prefill?.from || '',
+      to: prefill?.to || '',
+      flightNo: prefill?.flightNo || '',
+      flightTime: prefill?.flightTime || toAPITime(new Date()),
+      arrivalDeparture: prefill?.arrivalDeparture || '',
       airportId: '', airportName: '', terminalId: '', terminalName: '',
     },
   });
@@ -86,7 +97,12 @@ const OfficerCreateDutyScreen = () => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.header}><Text style={styles.title}>Create Duty</Text></View>
+      <View style={styles.header}>
+        <Text style={styles.title}>Create Duty</Text>
+        <TouchableOpacity style={styles.scanHeaderBtn} onPress={() => navigation.navigate('BoardingPassScan')}>
+          <Text style={styles.scanHeaderText}>📷 Scan Pass</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
 
         <AppInput label="Subordinate Name" value={user?.name || ''} editable={false} style={styles.readOnly} />
@@ -102,7 +118,7 @@ const OfficerCreateDutyScreen = () => {
 
         <Text style={styles.lbl}>Reporting Time</Text>
         <TouchableOpacity style={styles.dateBtn} onPress={() => setShowReportingTimePicker(true)}>
-          <Text style={styles.dateBtnText}>{moment(reportingTime).format('hh:mm A')}</Text>
+          <Text style={styles.dateBtnText}>{moment(reportingTime).format('HH:mm')}</Text>
         </TouchableOpacity>
         {showReportingTimePicker && <DateTimePicker value={reportingTime} mode="time" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={(_, t) => {setShowReportingTimePicker(false); if (t) {setReportingTime(t); setValue('reportingTime', toAPITime(t));}}} />}
 
@@ -130,7 +146,7 @@ const OfficerCreateDutyScreen = () => {
 
         <Text style={styles.lbl}>Flight Time</Text>
         <TouchableOpacity style={styles.dateBtn} onPress={() => setShowFlightTimePicker(true)}>
-          <Text style={styles.dateBtnText}>{moment(flightTime).format('hh:mm A')}</Text>
+          <Text style={styles.dateBtnText}>{moment(flightTime).format('HH:mm')}</Text>
         </TouchableOpacity>
         {showFlightTimePicker && <DateTimePicker value={flightTime} mode="time" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={(_, t) => {setShowFlightTimePicker(false); if (t) {setFlightTime(t); setValue('flightTime', toAPITime(t));}}} />}
 
@@ -174,8 +190,10 @@ const OfficerCreateDutyScreen = () => {
 
 const styles = StyleSheet.create({
   safe: {flex: 1, backgroundColor: colors.background},
-  header: {padding: 16, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.border},
+  header: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.border},
   title: {fontSize: 20, fontWeight: '700', color: colors.text},
+  scanHeaderBtn: {backgroundColor: colors.primary + '15', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: colors.primary + '40'},
+  scanHeaderText: {fontSize: 13, color: colors.primary, fontWeight: '600'},
   content: {padding: 16, paddingBottom: 40},
   lbl: {fontSize: 13, fontWeight: '500', color: colors.textSecondary, marginBottom: 5, marginTop: 8},
   row: {flexDirection: 'row', gap: 10, marginBottom: 8},

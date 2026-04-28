@@ -4,7 +4,8 @@ const errorHandler = (err, req, res, next) => {
 
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue)[0];
-    return res.status(400).json({ message: `${field} already exists` });
+    const label = field === 'username' ? 'Employee ID' : field.charAt(0).toUpperCase() + field.slice(1);
+    return res.status(400).json({ message: `${label} already exists` });
   }
 
   if (err.name === 'ValidationError') {

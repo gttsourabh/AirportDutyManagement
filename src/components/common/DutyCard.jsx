@@ -18,14 +18,19 @@ const DutyCard = ({duty, onPress}) => (
     <View style={styles.divider} />
     <View style={styles.infoRow}>
       <InfoItem label="Date" value={formatDate(duty.date)} />
-      <InfoItem label="Airport" value={duty.airportName || duty.airport} />
+      <InfoItem label="Report" value={duty.reportingTime ? formatTime(duty.reportingTime) : '—'} />
+      <InfoItem label="Flight Time" value={duty.flightTime ? formatTime(duty.flightTime) : '—'} />
       <InfoItem label="Terminal" value={duty.terminalName} />
     </View>
     <View style={styles.infoRow}>
       <InfoItem label="Flight" value={duty.flightNo} />
       <InfoItem label="From" value={duty.from} />
       <InfoItem label="To" value={duty.to} />
-      <InfoItem label="Type" value={duty.officeType?.replace('_', ' ')} />
+      <InfoItem label="Type" value={duty.officeType?.replace(/_/g, ' ')} />
+    </View>
+    <View style={styles.infoRow}>
+      <InfoItem label="Airport" value={duty.airportName || duty.airport} />
+      <InfoItem label="A/D" value={duty.arrivalDeparture} />
     </View>
     {isIncentiveEligible(duty.officeType) && (
       <View style={styles.incentiveBadge}>

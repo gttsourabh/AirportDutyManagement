@@ -1,10 +1,11 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {useDuties} from '../../../hooks/useDuties';
 import StatusBadge from '../../../components/common/StatusBadge';
-import {STATUS_DESCRIPTIONS} from '../../../constants/dutyStatus';
+import {STATUS_DESCRIPTIONS, DUTY_STATUS} from '../../../constants/dutyStatus';
+import DutyStatusUpdater from '../../../components/officer/DutyStatusUpdater';
 import LoadingOverlay from '../../../components/common/LoadingOverlay';
 import {colors} from '../../../theme/colors';
 import {shadows} from '../../../theme/spacing';
@@ -21,9 +22,17 @@ const Row = ({label, value}) => (
 const AdminDutyDetailScreen = () => {
   const navigation = useNavigation();
   const {params: {dutyId}} = useRoute();
-  const {selectedDuty: duty, fetchDuty, isLoading} = useDuties();
+  const {selectedDuty: duty, fetchDuty, changeStatus, isLoading} = useDuties();
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {fetchDuty(dutyId);}, [dutyId]);
+
+  const handleStatusUpdate = async status => {
+    setUpdating(true);
+    await changeStatus(dutyId, status);
+    await fetchDuty(dutyId);
+    setUpdating(false);
+  };
 
   if (!duty) return <LoadingOverlay visible={isLoading} />;
 
@@ -69,6 +78,11 @@ const AdminDutyDetailScreen = () => {
           <Row label="Assigned Subordinate ID" value={duty.officerId} />
           <Row label="Name of Subordinate" value={duty.officerName} />
         </View>
+        <DutyStatusUpdater
+          duty={duty}
+          onUpdate={handleStatusUpdate}
+          loading={updating}
+        />
       </ScrollView>
     </SafeAreaView>
   );
