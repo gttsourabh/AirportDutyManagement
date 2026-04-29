@@ -5,6 +5,7 @@ import {useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import {useDuties} from '../../../hooks/useDuties';
 import {useNotifications} from '../../../hooks/useNotifications';
+import {checkAndNotifyNewDuties} from '../../../utils/notificationHandler';
 import DutyCard from '../../../components/common/DutyCard';
 import EmptyState from '../../../components/common/EmptyState';
 import {colors} from '../../../theme/colors';
@@ -33,6 +34,12 @@ const OfficerDashboardScreen = () => {
   useEffect(() => {
     fetchDuties({officerId: user?.id});
   }, []);
+
+  useEffect(() => {
+    if (duties.length > 0) {
+      checkAndNotifyNewDuties(duties);
+    }
+  }, [duties]);
 
   return (
     <SafeAreaView style={styles.safe}>

@@ -72,12 +72,13 @@ export const exportDutyReportPDF = async (duties, filters = {}) => {
         <td>${d.srNo || i + 1}</td>
         <td><strong>${d.officerName || '—'}</strong></td>
         <td>${d.date || '—'}</td>
+        <td>${d.arrivalDeparture || '—'}</td>
+        <td>${d.flightNo || '—'}</td>
+        <td>${d.flightTime || '—'}</td>
+        <td>${d.from || '—'} → ${d.to || '—'}</td>
         <td>${d.airportName || '—'}</td>
         <td>${d.terminalName || '—'}</td>
-        <td>${d.flightNo || '—'}</td>
-        <td>${d.from || '—'} → ${d.to || '—'}</td>
         <td>${(d.officeType || '').replace('_', ' ')}</td>
-        <td>${d.arrivalDeparture || '—'}</td>
         <td>${badge(d.status)}</td>
         <td>${['BEFORE_OFFICE', 'AFTER_OFFICE'].includes(d.officeType) ? '<span class="incentive">₹500</span>' : '—'}</td>
       </tr>`).join('');
@@ -114,12 +115,13 @@ export const exportDutyReportPDF = async (duties, filters = {}) => {
               <th>#</th>
               <th>Subordinate</th>
               <th>Date</th>
+              <th>Arr/Dep</th>
+              <th>Flight No</th>
+              <th>Flight Time</th>
+              <th>Route</th>
               <th>Airport</th>
               <th>Terminal</th>
-              <th>Flight No</th>
-              <th>Route</th>
               <th>Type</th>
-              <th>Arr/Dep</th>
               <th>Status</th>
               <th>Incentive</th>
             </tr>
