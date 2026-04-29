@@ -13,6 +13,7 @@ import {fetchAirportsStart, fetchAirportsSuccess, setTerminals} from '../../../s
 import {getAirports, getTerminals} from '../../../api/airportApi';
 import AppInput from '../../../components/common/AppInput';
 import AppButton from '../../../components/common/AppButton';
+import WhatsAppMessageModal from '../../../components/common/WhatsAppMessageModal';
 import {colors} from '../../../theme/colors';
 import {OFFICE_TYPES, ARRIVAL_DEPARTURE, CITIES} from '../../../constants/dutyFormFields';
 import {getDayFromDate, toAPIDate, toAPITime} from '../../../utils/dateUtils';
@@ -26,6 +27,8 @@ const OfficerCreateDutyScreen = () => {
   const {addDuty} = useDuties();
   const {user} = useSelector(state => state.auth);
   const {list: airports, terminals} = useSelector(state => state.airports);
+  const [createdDuty, setCreatedDuty] = useState(null);
+  const [msgVisible, setMsgVisible] = useState(false);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showReportingTimePicker, setShowReportingTimePicker] = useState(false);
@@ -59,7 +62,7 @@ const OfficerCreateDutyScreen = () => {
       to: prefill?.to || '',
       flightNo: prefill?.flightNo || '',
       flightTime: prefill?.flightTime || toAPITime(new Date()),
-      arrivalDeparture: prefill?.arrivalDeparture || '',
+      arrivalDeparture: prefill?.arrivalDeparture || 'DEPARTURE',
       airportId: '', airportName: '', terminalId: '', terminalName: '',
     },
   });
@@ -109,7 +112,10 @@ const OfficerCreateDutyScreen = () => {
 
   const onSubmit = async data => {
     const result = await addDuty(data);
-    if (result) navigation.navigate('Dashboard');
+    if (result) {
+      setCreatedDuty(result);
+      setMsgVisible(true);
+    }
   };
 
   return (
@@ -201,6 +207,15 @@ const OfficerCreateDutyScreen = () => {
 
         <AppButton title="Submit Duty" onPress={handleSubmit(onSubmit)} loading={isSubmitting} style={styles.btn} />
       </ScrollView>
+
+      <WhatsAppMessageModal
+        visible={msgVisible}
+        duty={createdDuty}
+        senderName={user?.name || ''}
+        senderPhone={user?.phone || ''}
+        subordinatePhone={user?.phone || ''}
+        onClose={() => { setMsgVisible(false); navigation.navigate('Dashboard'); }}
+      />
     </SafeAreaView>
   );
 };

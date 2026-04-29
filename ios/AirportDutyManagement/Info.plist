@@ -27,10 +27,14 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
-		<false/>
+		<true/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Airport Duty Management needs camera access to scan boarding passes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Airport Duty Management needs photo library access to pick boarding pass images.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Airport Duty Management needs notifications to alert you about duty assignments and updates.</string>
 	<key>UILaunchStoryboardName</key>

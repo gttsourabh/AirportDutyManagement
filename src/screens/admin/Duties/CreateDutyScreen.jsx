@@ -3,7 +3,7 @@ import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform} from 're
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useForm, Controller} from 'react-hook-form';
 import {yupResolver} from '@hookform/resolvers/yup';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -15,6 +15,7 @@ import {getOfficers} from '../../../api/officerApi';
 import {getAirports, getTerminals} from '../../../api/airportApi';
 import AppInput from '../../../components/common/AppInput';
 import AppButton from '../../../components/common/AppButton';
+import WhatsAppMessageModal from '../../../components/common/WhatsAppMessageModal';
 import {colors} from '../../../theme/colors';
 import {AIRPORTS, OFFICE_TYPES, ARRIVAL_DEPARTURE, CITIES} from '../../../constants/dutyFormFields';
 import {getDayFromDate, toAPIDate, toAPITime} from '../../../utils/dateUtils';
@@ -22,11 +23,15 @@ import moment from 'moment';
 
 const CreateDutyScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const prefill = route.params?.prefill || null;
   const dispatch = useDispatch();
   const {addDuty} = useDuties();
   const officers = useSelector(state => state.officers.list);
   const {user: adminUser} = useSelector(state => state.auth);
   const {list: airports, terminals} = useSelector(state => state.airports);
+  const [createdDuty, setCreatedDuty] = useState(null);
+  const [msgVisible, setMsgVisible] = useState(false);
 
   useEffect(() => {
     dispatch(fetchOfficersStart());
@@ -59,9 +64,11 @@ const CreateDutyScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showReportingTimePicker, setShowReportingTimePicker] = useState(false);
   const [showFlightTimePicker, setShowFlightTimePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const initDate = prefill?.date ? new Date(prefill.date) : new Date();
+  const initFlightTime = prefill?.flightTime ? moment(prefill.flightTime, 'HH:mm').toDate() : new Date();
+  const [selectedDate, setSelectedDate] = useState(initDate);
   const [reportingTime, setReportingTime] = useState(new Date());
-  const [flightTime, setFlightTime] = useState(new Date());
+  const [flightTime, setFlightTime] = useState(initFlightTime);
 
   const [officerOpen, setOfficerOpen] = useState(false);
   const [officeTypeOpen, setOfficeTypeOpen] = useState(false);
@@ -74,9 +81,10 @@ const CreateDutyScreen = () => {
   const {control, handleSubmit, setValue, watch, formState: {errors, isSubmitting}} = useForm({
     resolver: yupResolver(dutySchema),
     defaultValues: {
-      officerId: '', date: toAPIDate(new Date()), reportingTime: toAPITime(new Date()),
-      officeType: '', from: '', to: '', flightNo: '', flightTime: toAPITime(new Date()),
-      officerName: '', arrivalDeparture: '',
+      officerId: '', date: prefill?.date || toAPIDate(new Date()), reportingTime: toAPITime(new Date()),
+      officeType: '', from: prefill?.from || '', to: prefill?.to || '',
+      flightNo: prefill?.flightNo || '', flightTime: prefill?.flightTime || toAPITime(new Date()),
+      officerName: '', arrivalDeparture: prefill?.arrivalDeparture || 'DEPARTURE',
       airportId: '', airportName: '', terminalId: '', terminalName: '',
     },
   });
@@ -84,6 +92,23 @@ const CreateDutyScreen = () => {
   const dateValue = watch('date');
   const selectedOfficerId = watch('officerId');
   const dayValue = dateValue ? getDayFromDate(dateValue) : '';
+
+  useEffect(() => {
+    if (!prefill) return;
+    if (prefill.date) {
+      const d = new Date(prefill.date);
+      setSelectedDate(d);
+      setValue('date', prefill.date);
+    }
+    if (prefill.flightTime) {
+      setFlightTime(moment(prefill.flightTime, 'HH:mm').toDate());
+      setValue('flightTime', prefill.flightTime);
+    }
+    if (prefill.from) setValue('from', prefill.from);
+    if (prefill.to) setValue('to', prefill.to);
+    if (prefill.flightNo) setValue('flightNo', prefill.flightNo);
+    if (prefill.arrivalDeparture) setValue('arrivalDeparture', prefill.arrivalDeparture);
+  }, [prefill]);
 
   // Build dropdown list — admin "myself" first, then active subordinates
   const MYSELF_VALUE = adminUser?.id || adminUser?._id || 'myself';
@@ -105,15 +130,29 @@ const CreateDutyScreen = () => {
 
   const onSubmit = async data => {
     const result = await addDuty(data);
-    if (result) navigation.goBack();
+    if (result) {
+      setCreatedDuty(result);
+      setMsgVisible(true);
+    }
   };
+
+  const subordinatePhone = (() => {
+    if (!createdDuty) return '';
+    const MYSELF_VALUE = adminUser?.id || adminUser?._id || 'myself';
+    if (createdDuty.officerId === MYSELF_VALUE || createdDuty.officerId === (adminUser?.id || adminUser?._id)) {
+      return adminUser?.phone || '';
+    }
+    return officers.find(o => o.id?.toString() === createdDuty.officerId?.toString())?.phone || '';
+  })();
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>← Back</Text></TouchableOpacity>
         <Text style={styles.title}>Create Duty</Text>
-        <View style={{width: 60}} />
+        <TouchableOpacity style={styles.scanHeaderBtn} onPress={() => navigation.navigate('BoardingPassScan')}>
+          <Text style={styles.scanHeaderText}>📷 Scan Pass</Text>
+        </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
 
@@ -234,6 +273,15 @@ const CreateDutyScreen = () => {
 
         <AppButton title="Create Duty" onPress={handleSubmit(onSubmit)} loading={isSubmitting} style={styles.btn} />
       </ScrollView>
+
+      <WhatsAppMessageModal
+        visible={msgVisible}
+        duty={createdDuty}
+        senderName={adminUser?.name || ''}
+        senderPhone={adminUser?.phone || ''}
+        subordinatePhone={subordinatePhone}
+        onClose={() => { setMsgVisible(false); navigation.goBack(); }}
+      />
     </SafeAreaView>
   );
 };
@@ -243,6 +291,8 @@ const styles = StyleSheet.create({
   header: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.border},
   back: {color: colors.primary, fontSize: 15},
   title: {fontSize: 18, fontWeight: '700', color: colors.text},
+  scanHeaderBtn: {backgroundColor: colors.primary + '15', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: colors.primary + '40'},
+  scanHeaderText: {fontSize: 13, color: colors.primary, fontWeight: '600'},
   content: {padding: 16, paddingBottom: 40},
   sectionLabel: {fontSize: 13, fontWeight: '500', color: colors.textSecondary, marginBottom: 5, marginTop: 8},
   row: {flexDirection: 'row', gap: 10, marginBottom: 8},
