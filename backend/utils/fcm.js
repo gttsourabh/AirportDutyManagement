@@ -1,16 +1,25 @@
 const admin = require('firebase-admin');
-const path = require('path');
 
 let initialized = false;
 
 function initFirebase() {
-  if (initialized) return;
+  if (initialized || admin.apps.length > 0) {
+    initialized = true;
+    return;
+  }
   try {
-    const serviceAccount = require(path.join(__dirname, '..', 'serviceAccountKey.json'));
+    // In production (Vercel), FIREBASE_SERVICE_ACCOUNT env var holds the JSON string
+    // Locally, fall back to serviceAccountKey.json file
+    let serviceAccount;
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } else {
+      serviceAccount = require('../serviceAccountKey.json');
+    }
     admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
     initialized = true;
   } catch (err) {
-    console.warn('[FCM] Firebase not initialized — serviceAccountKey.json missing:', err.message);
+    console.warn('[FCM] Firebase not initialized:', err.message);
   }
 }
 

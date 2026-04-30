@@ -1,9 +1,7 @@
 import axios from 'axios';
-
 import {store} from '../store';
-
 import {forceLogout} from '../store/slices/authSlice';
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+import {API_BASE_URL} from '../config';
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,

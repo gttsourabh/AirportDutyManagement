@@ -1,7 +1,6 @@
 import { Alert, Linking } from 'react-native';
 import { store } from '../store';
-
-const BASE_URL = 'http://localhost:5000/api/v1';
+import { API_BASE_URL as BASE_URL } from '../config';
 
 const buildPdfUrl = (path, filters = {}) => {
   const token = store.getState().auth.token;
