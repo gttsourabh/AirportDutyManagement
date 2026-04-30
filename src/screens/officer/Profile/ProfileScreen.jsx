@@ -2,11 +2,13 @@ import React from 'react';
 import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useSelector} from 'react-redux';
+import {useNavigation} from '@react-navigation/native';
 import {useAuth} from '../../../hooks/useAuth';
 import {colors} from '../../../theme/colors';
 import {shadows} from '../../../theme/spacing';
 
 const ProfileScreen = () => {
+  const navigation = useNavigation();
   const {user} = useSelector(state => state.auth);
   const {signOut} = useAuth();
 
@@ -36,6 +38,10 @@ const ProfileScreen = () => {
           <InfoRow label="Email" value={user?.email} />
           <InfoRow label="Department" value={user?.department || 'Airport Security'} />
         </View>
+
+        <TouchableOpacity style={styles.changePassBtn} onPress={() => navigation.navigate('ChangePassword')}>
+          <Text style={styles.changePassText}>Change Password</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Text style={styles.logoutText}>Sign Out</Text>
@@ -67,7 +73,9 @@ const styles = StyleSheet.create({
   row: {flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.divider},
   rowLabel: {fontSize: 14, color: colors.textSecondary},
   rowValue: {fontSize: 14, fontWeight: '500', color: colors.text},
-  logoutBtn: {margin: 16, borderWidth: 1.5, borderColor: colors.error, borderRadius: 10, padding: 15, alignItems: 'center'},
+  changePassBtn: {marginHorizontal: 16, marginBottom: 10, borderWidth: 1.5, borderColor: colors.primary, borderRadius: 10, padding: 15, alignItems: 'center'},
+  changePassText: {color: colors.primary, fontWeight: '600', fontSize: 15},
+  logoutBtn: {margin: 16, marginTop: 0, borderWidth: 1.5, borderColor: colors.error, borderRadius: 10, padding: 15, alignItems: 'center'},
   logoutText: {color: colors.error, fontWeight: '600', fontSize: 15},
 });
 

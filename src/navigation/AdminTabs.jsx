@@ -14,6 +14,7 @@ import EditOfficerScreen from '../screens/admin/Officers/EditOfficerScreen';
 import DutyReportScreen from '../screens/admin/Reports/DutyReportScreen';
 import SubordinateReportScreen from '../screens/admin/Reports/SubordinateReportScreen';
 import AdminProfileScreen from '../screens/admin/Profile/AdminProfileScreen';
+import ChangePasswordScreen from '../screens/shared/ChangePasswordScreen';
 import AirportListScreen from '../screens/admin/Airports/AirportListScreen';
 import AirportFormScreen from '../screens/admin/Airports/AirportFormScreen';
 import TerminalListScreen from '../screens/admin/Airports/TerminalListScreen';
@@ -24,6 +25,7 @@ const DutyStack = createNativeStackNavigator();
 const OfficerStack = createNativeStackNavigator();
 const ReportStack = createNativeStackNavigator();
 const AirportStack = createNativeStackNavigator();
+const ProfileStack = createNativeStackNavigator();
 
 const DutiesNavigator = () => (
   <DutyStack.Navigator screenOptions={{headerShown: false}}>
@@ -58,6 +60,13 @@ const ReportsNavigator = () => (
   </ReportStack.Navigator>
 );
 
+const ProfileNavigator = () => (
+  <ProfileStack.Navigator screenOptions={{headerShown: false}}>
+    <ProfileStack.Screen name="AdminProfile" component={AdminProfileScreen} />
+    <ProfileStack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+  </ProfileStack.Navigator>
+);
+
 const AdminTabs = () => (
   <Tab.Navigator
     screenOptions={{
@@ -76,7 +85,7 @@ const AdminTabs = () => (
       options={{tabBarIcon: () => <Text style={{fontSize: 20}}>🛫</Text>}} />
     <Tab.Screen name="Reports" component={ReportsNavigator}
       options={{tabBarIcon: () => <Text style={{fontSize: 20}}>📊</Text>}} />
-    <Tab.Screen name="Profile" component={AdminProfileScreen}
+    <Tab.Screen name="Profile" component={ProfileNavigator}
       options={{tabBarIcon: () => <Text style={{fontSize: 20}}>👤</Text>}} />
   </Tab.Navigator>
 );

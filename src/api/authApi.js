@@ -17,3 +17,6 @@ export const logoutApi = () =>
 
 export const saveFcmTokenApi = fcmToken =>
   axiosInstance.post('/auth/fcm-token', { fcmToken });
+
+export const changePasswordApi = (currentPassword, newPassword) =>
+  axiosInstance.post('/auth/change-password', { currentPassword, newPassword });

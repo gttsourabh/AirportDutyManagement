@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { sendOtpSms } = require('../utils/sms');
 
 const signToken = id =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
 
-// Fixed OTP for development — replace with real provider later
-const generateOTP = () => '123456';
+const generateOTP = () => String(Math.floor(100000 + Math.random() * 900000));
 
 const findUser = identifier =>
   User.findOne({
@@ -16,10 +16,7 @@ const findUser = identifier =>
     ],
   });
 
-// Step 1: validate credentials → generate & store OTP
 exports.sendOTP = async (req, res, next) => {
-  console.log(req.body)
-
   try {
     const { identifier, password, role } = req.body;
     if (!identifier || !password)
@@ -37,31 +34,25 @@ exports.sendOTP = async (req, res, next) => {
       return res.status(403).json({ message: `This account is not registered as ${role}. Please select the correct role.` });
 
     const otp = generateOTP();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await User.findByIdAndUpdate(user._id, { otp, otpExpiry });
 
-    const maskedEmail = user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3');
-    const response = {
-      message: `OTP sent to ${maskedEmail}`,
-      userId: user._id,
-      maskedEmail,
-    };
+    await sendOtpSms(user.phone, otp);
 
-    // Return OTP in response during development so it can be tested without SMTP
+    const maskedPhone = user.phone.replace(/(\d{2})\d+(\d{2})/, '$1******$2');
+    const maskedEmail = user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3');
+    const response = { message: `OTP sent to ${maskedPhone}`, userId: user._id, maskedEmail };
+
     if (process.env.NODE_ENV === 'development') {
       response.otp = otp;
-      console.log(`[DEV] OTP for ${user.email}: ${otp}`);
     }
 
     res.json(response);
-
   } catch (err) {
     next(err);
   }
-
 };
 
-// Step 2: verify OTP → return JWT
 exports.verifyOTP = async (req, res, next) => {
   try {
     const { userId, otp } = req.body;
@@ -87,7 +78,6 @@ exports.verifyOTP = async (req, res, next) => {
   }
 };
 
-// Resend OTP (re-validates credentials not needed, just regenerate for same userId)
 exports.resendOTP = async (req, res, next) => {
   try {
     const { userId } = req.body;
@@ -95,25 +85,45 @@ exports.resendOTP = async (req, res, next) => {
       return res.status(400).json({ message: 'User ID is required' });
 
     const user = await User.findById(userId);
-    if (!user)
-      return res.status(404).json({ message: 'User not found' });
-
-    if (!user.isEnabled)
-      return res.status(403).json({ message: 'Account disabled.' });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user.isEnabled) return res.status(403).json({ message: 'Account disabled.' });
 
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await User.findByIdAndUpdate(userId, { otp, otpExpiry });
 
-    const maskedEmail = user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3');
-    const response = { message: `OTP resent to ${maskedEmail}`, maskedEmail };
+    await sendOtpSms(user.phone, otp);
+
+    const maskedPhone = user.phone.replace(/(\d{2})\d+(\d{2})/, '$1******$2');
+    const response = { message: `OTP resent to ${maskedPhone}` };
 
     if (process.env.NODE_ENV === 'development') {
       response.otp = otp;
-      console.log(`[DEV] Resent OTP for ${user.email}: ${otp}`);
     }
 
     res.json(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ message: 'Current and new password are required' });
+
+    if (newPassword.length < 6)
+      return res.status(400).json({ message: 'New password must be at least 6 characters' });
+
+    const user = await User.findById(req.user._id).select('+password');
+    if (!await user.comparePassword(currentPassword))
+      return res.status(401).json({ message: 'Current password is incorrect' });
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully' });
   } catch (err) {
     next(err);
   }
