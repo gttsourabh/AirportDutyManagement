@@ -1,34 +1,113 @@
+# =========================
+# macOS
+# =========================
 .DS_Store
-build/
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-xcuserdata
-DerivedData
-*.hmap
-*.ipa
-*.xcuserstate
-ios/.xcode.env.local
-.idea
-.gradle
-local.properties
+
+# =========================
+# Node / React Native
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.metro-health-check*
+metro.log
+/coverage
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# =========================
+# IDEs / Editors
+# =========================
+.idea/
+.vscode/
 *.iml
-*.hprof
+
+# =========================
+# Android
+# =========================
+.gradle/
+local.properties
 .cxx/
+*.hprof
+
+# Keystores
 *.keystore
 !debug.keystore
 gttdata-release.keystore
 android/keystore.properties
-node_modules/
-npm-debug.log
-yarn-error.log
-.metro-health-check*
-/coverage
-.env
+
+# Android build outputs
+android/app/build/
+android/build/
+build/
+
+# =========================
+# iOS / Xcode
+# =========================
+
+# Build folders
+ios/build/
+DerivedData/
+
+# User data
+xcuserdata/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# Xcode temporary/project settings
+*.hmap
+*.ipa
+
+# Xcode user-specific files
+*.pbxuser
+!default.pbxuser
+
+*.mode1v3
+!default.mode1v3
+
+*.mode2v3
+!default.mode2v3
+
+# Xcode local env
+ios/.xcode.env
+ios/.xcode.env.local
+
+# CocoaPods
+ios/Pods/
+
+# =========================
+# Backend / Secrets
+# =========================
 backend/serviceAccountKey.json
 backend.log
-metro.log
+
+# Firebase / Google Services
+google-services.json
+GoogleService-Info.plist
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Testing
+# =========================
+jest/
+coverage/
+
+# =========================
+# Temporary files
+# =========================
+tmp/
+temp/
+
+# =========================
+# Sample/Test Data
+# =========================
 Sample Data/
